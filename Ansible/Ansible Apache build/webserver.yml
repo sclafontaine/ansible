@@ -1,0 +1,12 @@
+- hosts: ubuntu #This is the maching in the host file of ansible
+  become: no #become is a key that states to use sudo in the playbook
+  tasks: #What you are going to perform with ansible (apt update, user config, install ping, etc.)
+    - name: (Task 1) Ensure that Apache is installed #This is a string description. 
+      apt: #service name of the linux op system. This is for Ubuntu. Cento os would be yum. 
+        name: apache2 #Not a description. This is the name of the service being install. Apache2 is Ubuntu and httpd is CentOs. 
+        state: present
+    - name: (Task 2) Ensure that Apache is running and will be started on boot
+      service: #the Service that needs to be performed. 
+        name: apache2 #Name of the service.
+        state: started #What you want to happen in this case Start the apache2 service
+        enabled: yes #This is to enable at boot.

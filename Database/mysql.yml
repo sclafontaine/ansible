@@ -1,0 +1,72 @@
+- hosts: dbserver
+  become: no
+  tasks:
+    - name: (Task-1) Install python prerequisits for installing MYSQL
+      apt: 
+        name: [ 'python3-mysql.connector', 
+                'python3-pip']
+        state: present
+    - name: (Task 2) Install pymysql from pip
+      pip:
+        name: pymysql
+        state: present
+    - name: Make a downloads directory at /etc to download the mysql package.
+      file:
+        path: /etc/downloads
+        state: directory
+    - name: Download mysql sources to the /etc/dowloads directory
+      get_url: 
+        url: https://repo.mysql.com//mysql-apt-config_0.8.13-1_all.deb 
+        dest: /etc/downloads
+    - name: Unpack the mysql-apt-config_0.8.13-1_all.deb.
+      dpkg_selections:
+        name: mysqlmysql-apt-config_0.8.13-1_all.deb
+        selection: install
+    - name: Install mysql-server
+      apt:
+        name: mysql-server
+        state: present
+    - name: Start mysql
+      service:
+        name: mysql
+        enabled: yes
+        state: started
+    #- name: (Task-3) Ensure that Mariadb is started and enabled
+      #service:
+        #name: mysql
+        #state: started
+        #enabled: yes
+    - name: (Task-5) Set the root password for MySQL
+      mysql_user:
+        name: root
+        login_user: root
+        password: admin
+        check_implicit_admin: yes
+        login_host: "localhost"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        state: present
+    - name: (Task-6) Upload the .my.cnf file to save the credentials.
+      copy:
+        src: my.cnf
+        dest: /root/.my.cnf
+        owner: root
+        mode: 0600
+    - name: (Task-7) Remove anonymous accounts
+      mysql_user:
+        name: ''
+        host_all: yes
+        state: absent
+    - name: (Task-8) Create application database
+      mysql_db:
+        name: ci_database
+        state: present
+    #- name: (Task-9) Create an application user
+      #mysql_user:
+        #name: ci_user
+        #password: cipassword
+        #host: '172.17.0.3'
+        #priv: ci_database.*:ALL
+        #state: present
+
+
+      

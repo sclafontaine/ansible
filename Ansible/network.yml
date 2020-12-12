@@ -1,0 +1,11 @@
+- hosts: ubuntu
+  become: no
+  tasks: 
+    - name: (Task 1) Installing iproute2
+      apt:
+        name: iproute2
+        state: present
+    - name: (Task 2) Installing iputils-ping
+      apt:
+        name: iputils-ping
+        state: present
