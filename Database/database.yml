@@ -1,0 +1,61 @@
+- hosts: 172.31.85.252
+  become: no
+  handlers:
+    - name: Restart Mariadb
+      service:
+        name: mysql
+        state: restarted    
+  tasks:
+    - name: Ensure that MariaDB is installed
+      yum:
+        name: ['mariadb-server', 'mariadb', 'python3-pip', 'php', 'php-common', 'php-opcache', 'php-cli', 'php-gd', 'php-curl', 'php-mysqlnd', 'php-mbstring', 'unzip', 'curl', 'wget', 'bind-utils', 'telnet', 'git', nano, vim]
+        state: present
+    - name: Install pymysql via pip
+      pip:
+        name: pymysql
+    - name: (DATABASE) Allow remote hosts to connect (Red Hat)
+      lineinfile:
+        path: /etc/my.cnf.d/mariadb-server.cnf
+        state: present
+        insertafter: '^\[mysqld\]'
+        line: 'bind-address=172.31.85.252'
+      notify: Restart Mariadb
+    - name: Ensure that Mariadb is started and enabled
+      service: 
+        name: mariadb 
+        state: started 
+        enabled: yes
+    - name: Upload the .my.cnf file to save the credentials
+      copy:
+        src: my.cnf
+        dest: /root/.my.cnf
+        owner: root
+        mode: 0600
+    - name: Set the root password for MySQL
+      mysql_user:
+        name: root
+        password: admin
+        host: '%'
+        state: present
+#    - name: Upload the .my.cnf file to save the credentials
+#      copy:
+#        src: my.cnf
+#        dest: /root/.my.cnf
+#        owner: root
+#        mode: 0600
+    - name: Remove anonymous accounts
+      mysql_user:
+        name: ''
+        host_all: yes
+        state: absent
+    - name: Create application database
+      mysql_db:
+        name: ci_database
+        state: present
+    - name: Create an application user
+      mysql_user:
+        name: ci_user
+        password: cipassword
+        host: '%'
+        priv: ci_database.*:ALL
+        state: present

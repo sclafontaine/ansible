@@ -3,20 +3,12 @@
   handlers:
     - name: Restart Apache2 on change
       service:
-        name: apache2
-        state: restarted
-    - name: Restart SSH
-      service:
-        name: ssh
-        state: restarted
-    - name: Restart mysql
-      service:
-        name: mysql
+        name: httpd
         state: restarted
   tasks:
-    - name: (Task 1) Install Apache2
-      apt:
-        name: apache2
+    - name: (Task 1) Install the Apache web server
+      yum:
+        name: httpd
         state: present
     - name: (Tash 2) Add the port in the /etc/apache2/ports.conf file to "Listen 8081"
       lineinfile:

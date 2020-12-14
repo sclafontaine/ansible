@@ -1,4 +1,4 @@
-- hosts: 172.17.0.3
+- hosts: 172.31.25.198
   become: no
 
 #Handlers for restart on change
@@ -21,64 +21,72 @@
   tasks:
       #Apache2 Installs and changes
     - name: (Task 1) Install Apache2
-      apt:
-        name: apache2
+      yum:
+        name: httpd
         state: present
-    - name: (Tash 2) Add the port in the /etc/apache2/ports.conf file to "Listen 8081"
-      lineinfile:
-        path: /etc/apache2/ports.conf
-        insertafter: 'Listen 80'
-        line: 'Listen 8081'
-        state: present
-    - name: (Task 3) Add the port to the /etc/apache/sites-enabled/000-default.conf
-      lineinfile:
-        path: /etc/apache2/sites-enabled/000-default.conf
-        regexp: '^.*<VirtualHost.*$'
-        line: <VirtualHost *:8081>
-        state: present
+    - name: (Task 2) Start the httpd service
+      service: 
+        name: httpd
+        state: started
+        enabled: yes
+    - name: (Task 3) Clone the html repo
+      git:
+        repo: 'https://github.com/sclafontaine/myprofilesite.git'
+        dest: /var/www/html
+            
+#    - name: (Tash 2) Add the port in the /etc/apache2/ports.conf file to "Listen 8081"
+#      lineinfile:
+#        path: /etc/apache2/ports.conf
+#       insertafter: 'Listen 80'
+#        line: 'Listen 8081'
+#        state: present
+#    - name: (Task 3) Add the port to the /etc/apache/sites-enabled/000-default.conf
+#      lineinfile:
+#        path: /etc/apache2/sites-enabled/000-default.conf
+#        regexp: '^.*<VirtualHost.*$'
+#        line: <VirtualHost *:8081>
+#        state: present
       #Apache2 Installs and changes
 
-      #PHP Installation
-    - name: Install repositories for PHP
-      apt:
-        name: software-properties-common
-        state: present
-    - name: (Task 4) Install PHP with all with all modules
-      apt: 
-        name: ['php7.4', 'php7.4-common',
-            'php7.4-opcache', 'php7.4-cli', 'php7.4-gd', 'php7.4-curl', 'php7.4-mysql', 'unzip', 'vim']
+      #PHP Installation and other modules
+#    - name: Install repositories for PHP
+#      yum:
+#        name: software-properties-common
+#        state: present
+    - name: (Task 4) Install PHP with all modules
+      yum: 
+        name: ['mariadb-server', 'mariadb', 'php', 'php-common', 'php-opcache', 'php-cli', 'php-gd', 'php-curl', 'php-mysqlnd', 'php-mbstring', 'unzip', 'curl', 'wget', 'bind-utils', 'telnet', 'git']
         state: present
       #PHP Installation
 
       #MySQL install
-    - name: Make a downloads directory at /etc to download the mysql package.
-      file:
-        path: /etc/downloads
-        state: directory
-    - name: Download mysql sources to the /etc/dowloads directory
-      get_url: 
-        url: https://repo.mysql.com//mysql-apt-config_0.8.13-1_all.deb 
-        dest: /etc/downloads
-    - name: Unpack the mysql-apt-config_0.8.13-1_all.deb.
-      dpkg_selections:
-        name: mysqlmysql-apt-config_0.8.13-1_all.deb
-        selection: install
-    - name: Install mysql-server
-      apt:
-        name: mysql-server
-        state: present
+#    - name: Make a downloads directory at /etc to download the mysql package.
+#      file:
+#        path: /etc/downloads
+#        state: directory
+#    - name: Download mysql sources to the /etc/dowloads directory
+#      get_url: 
+#        url: https://repo.mysql.com//mysql-apt-config_0.8.13-1_all.deb 
+#        dest: /etc/downloads
+#    - name: Unpack the mysql-apt-config_0.8.13-1_all.deb.
+#      dpkg_selections:
+#        name: mysqlmysql-apt-config_0.8.13-1_all.deb
+#        selection: install
+#    - name: Install mysql-server
+#      yum:
+#        name: mysql-server
+#        state: present
     - name: Start mysql
       service:
-        name: mysql
+        name: mariadb
         enabled: yes
         state: started
       #MySQL install
 
       #Update the server last time. 
     - name: Update the server
-      apt:
+      yum:
         update_cache: yes
-        force_apt_get: yes
       #Update the server last time.
 
       
